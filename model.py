@@ -16,6 +16,13 @@ class Operation:
 class Chat:
     def __init__(self, id: int):
         self.id = id 
+    
+    def save(self):
+        chat = db.cursor.execute(f"select 1 from Chats where ID = {self.id}")
+        exists = chat.fetchall()
+        if not exists:
+            db.insert('Chats',{'ID': self.id})
+
 
 
 
