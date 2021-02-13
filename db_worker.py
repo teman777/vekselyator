@@ -7,7 +7,7 @@ cursor = conn.cursor()
 
 def _init_db():
     with open("createdb.sql", "r") as f:
-        sql = f.read();
+        sql = f.read()
     cursor.executescript(sql)
     conn.commit()
 
@@ -29,6 +29,11 @@ def insert(table: str, column_values: Dict):
                        ,values)
     conn.commit()
 
+def delete(table: str, row_id:int) -> None:
+    row_id = int(row_id)
+    cursor.execute(f"delete from {table} where ID={row_id}")
+    conn.commit()
+
 def fetchall(table: str, columns: List[str]) -> List[Tuple]:
     columns_joined = ', '.join(columns)
     cursor.execute(f"select {columns_joined} from {table}")
@@ -43,7 +48,8 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
 
 checkdb()
 
-print(fetchall('Users', {'ID', 'Brief'}))
+
+
 
 
 
