@@ -1,4 +1,5 @@
 import db_worker as db
+import json
 from typing import List, Tuple
 
 class User:
@@ -13,6 +14,23 @@ class User:
             db.insert('Users', {'ID': self.id, 'Brief': self.brief})
 
 
+
+class Operations(object):
+    def __init__(self, data = '' ,userTo: List[int] = [], userFrom: int = 0, qty: float = 0, chatId: int = 0, comment:str = '', type: int = 1):
+        if data == '':
+            self.userTo = userTo
+            self.userFrom = userFrom
+            self.qty = qty
+            self.chatId = chatId
+            self.comment = comment
+            self.type   = type
+            self.__dict__ = {'chatId': self.chatId, 'qty':self.qty, 'userFrom': self.userFrom, 'userTo': self.userTo, 'comment': self.comment, 'type': self.type}
+        else:
+            self.__dict__ = json.loads(data)
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=2)
 class Operation:
     def __init__(self ,userTo: int, userFrom: int, qty: float, chatId: int, comment:str, id: int = 0):
         self.id = id
@@ -75,12 +93,10 @@ class Chat:
         for oper in self.operations:
             oper.save()
             
-
-
-operations = []
 chats = []
 
 def init():
+    chats = []
     chatdb = db.fetchall('Chats', ['ID'])
     for chat in chatdb:
         chatsav = Chat(id=chat['ID'])
@@ -90,7 +106,11 @@ def init():
 def update():
     init()
 
-
+def getChatById(id: int) -> Chat:
+    for i in chats:
+        if i.id == id:
+            return i
+    return Chat(id=id)
          
 
 init()
