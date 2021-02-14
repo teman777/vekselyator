@@ -8,14 +8,14 @@ create table Chats
             (ID integer unique primary key);
 
 create table UserChatRelation
-            (ID integer unique primary key autoincrement
+            (ID integer primary key autoincrement
             ,ChatID integer 
             ,UserID integer
             ,FOREIGN KEY (ChatID) references Chats(ID)
             ,FOREIGN KEY (UserID) references Users(ID));
             
 create table Operation
-            (ID     integer unique primary key autoincrement
+            (ID     integer primary key autoincrement
             ,UFrom  integer 
             ,UTo    integer
             ,Qty    money
@@ -28,7 +28,7 @@ create table Operation
             );
 
 create table Operations
-            (ID     integer unique primary key autoincrement
+            (ID     integer primary key autoincrement
             ,UserFrom  integer 
             ,UserTo    varchar(255)
             ,Qty    money

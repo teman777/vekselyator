@@ -27,9 +27,9 @@ class Operations:
     def save(self):
         db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
         self.id = db.cursor.lastrowid
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, 
-            sort_keys=True, indent=2)
+        
+        
+
 class Operation:
     def __init__(self ,userTo: int, userFrom: int, qty: float, chatId: int, comment:str, id: int = 0):
         self.id = id

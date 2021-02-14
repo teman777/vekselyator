@@ -38,7 +38,9 @@ async def add(message: types.Message):
                        ,disable_notification = True
                        ,reply_markup = buttons)
 
-
+@dp.callback_query_handler()
+async def addUserInline(callback_query: types.CallbackQuery):
+    print(callback_query.data)
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)

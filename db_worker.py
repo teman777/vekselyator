@@ -21,12 +21,12 @@ def checkdb():
 
 def insert(table: str, column_values: Dict):
     columns = ', '.join(column_values.keys())
-    values = [tuple(column_values.values())]
+    values = tuple(column_values.values())
     placeholder = ', '.join("?" * len(column_values.keys()))
-    cursor.executemany(f"insert into {table}"
-                       f"({columns})"
-                       f"values({placeholder})"
-                       ,values)
+    cursor.execute(f"insert into {table}"
+                   f"({columns})"
+                   f"values({placeholder})"
+                   ,values)
     conn.commit()
 
 
@@ -36,9 +36,9 @@ def update(table: str, id: int ,column_values: Dict):
     for c in col:
         colwithplace.append(c + ' = ?')
     columns = ', '.join(colwithplace)
-    values = [tuple(column_values.values())]
+    values = tuple(column_values.values())
     
-    cursor.executemany(f"update {table}"
+    cursor.execute(f"update {table}"
                        f"  set {columns}"
                        f" where ID = {id}"
                        , values)
