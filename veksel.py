@@ -9,8 +9,6 @@ bot = Bot(token=api)
 dp = Dispatcher(bot)
 
 
-
-
 @dp.message_handler(commands = ['start'])
 async def start(message: types.Message):
     chat = model.getChatById(message.chat.id)
@@ -29,11 +27,13 @@ async def add(message: types.Message):
                            ,userTo=[]
                            ,comment=''
                            ,type = 1
-                           , qty = 0)
-    callback = 'adduser/12345678/1234567543fasdfsdfsdfsdfasdfdsfsdfsdgsdfgewf'
+                           ,qty = 0)
+
+    operations.save()
+    callback = 'adduser'
     for user in chat.users:
-        if user.id != message.from_user.id:
-            buttons.add(types.InlineKeyboardButton(text=user.brief, callback_data=callback))
+        buttons.add(types.InlineKeyboardButton(text=user.brief, callback_data=callback+'/'+str( user.id) + '/' + str(operations.id)))
+        print(callback+'/'+str( user.id) + '/' + str(operations.id))
     await message.reply(text="Добавляем вексель\nКто задолжал?"
                        ,disable_notification = True
                        ,reply_markup = buttons)

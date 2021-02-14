@@ -15,19 +15,18 @@ class User:
 
 
 
-class Operations(object):
-    def __init__(self, data = '' ,userTo: List[int] = [], userFrom: int = 0, qty: float = 0, chatId: int = 0, comment:str = '', type: int = 1):
-        if data == '':
-            self.userTo = userTo
-            self.userFrom = userFrom
-            self.qty = qty
-            self.chatId = chatId
-            self.comment = comment
-            self.type   = type
-            self.__dict__ = {'chatId': self.chatId, 'qty':self.qty, 'userFrom': self.userFrom, 'userTo': self.userTo, 'comment': self.comment, 'type': self.type}
-        else:
-            self.__dict__ = json.loads(data)
-
+class Operations:
+    def __init__(self, id:int = 0 ,userTo: List[int] = [], userFrom: int = 0, qty: float = 0, chatId: int = 0, comment:str = '', type: int = 1):
+        self.userTo = userTo
+        self.userFrom = userFrom
+        self.qty = qty
+        self.chatId = chatId
+        self.comment = comment
+        self.type   = type
+        self.id = id
+    def save(self):
+        db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
+        self.id = db.cursor.lastrowid
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, 
             sort_keys=True, indent=2)

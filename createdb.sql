@@ -26,3 +26,15 @@ create table Operation
             ,FOREIGN KEY (UTo)    references  Users(ID)
             ,FOREIGN KEY (ChatID) references  Chats(ID)
             );
+
+create table Operations
+            (ID     integer unique primary key autoincrement
+            ,UserFrom  integer 
+            ,UserTo    varchar(255)
+            ,Qty    money
+            ,ChatID integer
+            ,Comment varchar(255)
+            ,Type integer
+            ,FOREIGN KEY (UserFrom)  references  Users(ID)            
+            ,FOREIGN KEY (ChatID) references  Chats(ID)
+            );
