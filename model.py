@@ -5,6 +5,13 @@ class User:
         self.id = id
         self.brief = brief
 
+    def save(self):
+        user = db.cursor.execute(f"select 1 from Users where ID = {self.id}")
+        exists = user.fetchall()
+        if not exists:
+            db.insert('Users', {'ID': self.id})
+
+
 class Operation:
     def __init__(self, id: int, userTo: int, userFrom: int, qty: float, chatId: int):
         self.id = id
@@ -13,6 +20,11 @@ class Operation:
         self.qty = qty
         self.chatId = chatId
 
+    def save(self):
+        operation = db.cursor.execute(f"select 1 from Operation where ID = {self.id}")
+        exists = operation.fetchall()
+        if not exists:
+            db.insert('Operation', {'ID': self.id})
 class Chat:
     def __init__(self, id: int):
         self.id = id 
@@ -22,7 +34,3 @@ class Chat:
         exists = chat.fetchall()
         if not exists:
             db.insert('Chats',{'ID': self.id})
-
-
-
-
