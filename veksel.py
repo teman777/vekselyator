@@ -18,8 +18,12 @@ async def start(message: types.Message):
     usersav = User(id=user.id, brief=user.username)
     chatsav.addUser(usersav)
     chatsav.save()
+    model.update()
     
- 
+ @dp.message_handler(commands = ['add'])
+ async def add(message: types.Message):
+     chat = Chat(id=message.chat.id)
+     
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)

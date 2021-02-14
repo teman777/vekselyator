@@ -14,30 +14,51 @@ class User:
 
 
 class Operation:
-    def __init__(self, id: int, userTo: int, userFrom: int, qty: float, chatId: int):
+    def __init__(self ,userTo: int, userFrom: int, qty: float, chatId: int, comment:str, id: int = 0):
         self.id = id
         self.userTo = userTo
         self.userFrom = userFrom
         self.qty = qty
         self.chatId = chatId
+        self.comment = comment
 
     def save(self):
         operation = db.cursor.execute(f"select 1 from Operation where ID = {self.id}")
         exists = operation.fetchall()
-        if not exists:
-            db.insert('Operation', {'ID': self.id})
+        if not exists or self.id == 0:
+            db.insert('Operation', {'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId})
+            self.id = db.cursor.lastrowid
+        elif exists:
+            db.update('Operation', self.id ,{'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId})
 
 class Chat:
-    def __init__(self, id: int, users: List[User] = None):
+    def __init__(self, id: int, users: List[User] = None, operations: List[Operation] = None):
         self.id = id
         if users == None:
             self.users = [] 
         else:
             self.users = users
+        if operations == None:
+            self.operations = [] 
+        else:
+            self.operations = operations
     
     def addUser(self, user: User):
         if user not in self.users:
             self.users.append(user)
+
+    def addOperation(self, operation: Operation):
+        self.operations.append(operation)
+    
+    def load(self):
+        self.users = []
+        self.operations = []
+        us = db.getUsersForChat(self.id)
+        op = db.getOperationsForChat(self.id)
+        for u in us:
+            self.users.append(User(u[0], u[1]))
+        for o in op:
+            self.operations.append(Operation(id=o[0],userFrom=o[1], userTo=o[2], qty=o[3], comment=o[4], chatId = self.id))
     
     def save(self):
         chat = db.cursor.execute(f"select 1 from Chats where ID = {self.id}")
@@ -51,6 +72,8 @@ class Chat:
                                          f"   and UserID = {user.id}")
             if not relexist.fetchall():
                 db.insert('UserChatRelation', {'ChatID':self.id, 'UserID':user.id})
+        for oper in self.operations:
+            oper.save()
             
 
 
@@ -61,12 +84,14 @@ def init():
     chatdb = db.fetchall('Chats', ['ID'])
     for chat in chatdb:
         chatsav = Chat(id=chat['ID'])
-        userschatdb = db.getUsersForChat(id=chatsav.id)
-        for user in userschatdb:
-            usersav = User(id=user[0], brief=user[1])
-            chatsav.addUser(usersav)
+        chatsav.load()
         chats.append(chatsav)
 
+def update():
+    init()
+
+
+         
 
 init()
 

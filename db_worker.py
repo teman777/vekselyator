@@ -29,6 +29,21 @@ def insert(table: str, column_values: Dict):
                        ,values)
     conn.commit()
 
+
+def update(table: str, id: int ,column_values: Dict):
+    col = column_values.keys()
+    colwithplace = []
+    for c in col:
+        colwithplace.append(c + ' = ?')
+    columns = ', '.join(colwithplace)
+    values = [tuple(column_values.values())]
+    
+    cursor.executemany(f"update {table}"
+                       f"  set {columns}"
+                       f" where ID = {id}"
+                       , values)
+    conn.commit()
+
 def delete(table: str, row_id:int) -> None:
     row_id = int(row_id)
     cursor.execute(f"delete from {table} where ID={row_id}")
@@ -55,13 +70,13 @@ def getUsersForChat(id: int) -> List[Dict]:
     rows = cursor.fetchall()
     return rows
 
+def getOperationsForChat(id: int) -> List[Dict]:
+    cursor.execute(f"select ID, UFrom, UTo, Qty, Comment"
+                   f"  from Operation"                 
+                   f" where ChatID = {id}")
+    rows = cursor.fetchall()
+    return rows
+
 
 checkdb()
-
-
-
-
-
-
-
 

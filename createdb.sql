@@ -15,11 +15,13 @@ create table UserChatRelation
             ,FOREIGN KEY (UserID) references Users(ID));
             
 create table Operation
-            (ID    integer unique primary key autoincrement
-            ,UFrom integer 
-            ,UTo   integer
-            ,Qty   money
+            (ID     integer unique primary key autoincrement
+            ,UFrom  integer 
+            ,UTo    integer
+            ,Qty    money
             ,ChatID integer
+            ,Date   datetime
+            ,Comment varchar(255)
             ,FOREIGN KEY (UFrom)  references  Users(ID)
             ,FOREIGN KEY (UTo)    references  Users(ID)
             ,FOREIGN KEY (ChatID) references  Chats(ID)
