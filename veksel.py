@@ -33,14 +33,48 @@ async def add(message: types.Message):
     callback = 'adduser'
     for user in chat.users:
         buttons.add(types.InlineKeyboardButton(text=user.brief, callback_data=callback+'/'+str( user.id) + '/' + str(operations.id)))
-        print(callback+'/'+str( user.id) + '/' + str(operations.id))
     await message.reply(text="Добавляем вексель\nКто задолжал?"
                        ,disable_notification = True
                        ,reply_markup = buttons)
 
-@dp.callback_query_handler()
+@dp.callback_query_handler(lambda c: c.data.startswith('adduser'))
 async def addUserInline(callback_query: types.CallbackQuery):
-    print(callback_query.data)
+    data = callback_query.data.split('/')
+    operid = int(data[2])
+    userid = int(data[1])
+    oper = model.getOperationsForChat(operid)
+    oper.userTo.append(userid)
+    oper.save()
+    chat = model.getChatById(callback_query.message.chat.id)
+    chat.load()
+    buttons = types.InlineKeyboardMarkup()
+    for user in chat.users:
+        if user.id == userid or user.id in oper.userTo:          
+            buttons.add(types.InlineKeyboardButton(text=user.brief + ' +',callback_data='deleteuser/' + str(user.id) + '/' + str(operid)))
+        else:
+            buttons.add(types.InlineKeyboardButton(text=user.brief,callback_data='adduser/' + str(user.id) + '/' + str(operid)))
+    await callback_query.message.edit_reply_markup(buttons)
+
+@dp.callback_query_handler(lambda c: c.data.startswith('deleteuser'))
+async def deleteUserInline(callback_query: types.CallbackQuery):
+    data = callback_query.data.split('/')
+    operid = int(data[2])
+    userid = int(data[1])
+    oper = model.getOperationsForChat(operid)
+    oper.userTo.remove(userid)
+    oper.save()
+    chat = model.getChatById(callback_query.message.chat.id)
+    chat.load()
+    buttons = types.InlineKeyboardMarkup()
+    for user in chat.users:
+        if user.id == userid or user.id not in oper.userTo:
+            buttons.add(types.InlineKeyboardButton(text=user.brief,callback_data='adduser/' + str(user.id) + '/' + str(operid)))
+        else:
+            buttons.add(types.InlineKeyboardButton(text=user.brief + ' +',callback_data='deleteuser/' + str(user.id) + '/' + str(operid)))
+    await callback_query.message.edit_reply_markup(buttons)
+    
+    
+    
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)

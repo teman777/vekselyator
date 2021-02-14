@@ -25,8 +25,12 @@ class Operations:
         self.type   = type
         self.id = id
     def save(self):
-        db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
-        self.id = db.cursor.lastrowid
+        oper = db.cursor.execute(f"select 1 from Operations where ID = {self.id}").fetchall()
+        if not oper:
+            db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
+            self.id = db.cursor.lastrowid
+        else:
+            db.update('Operations', self.id, {'UserTo': str(self.userTo), 'UserFrom': self.userFrom, 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment, 'ChatId':self.chatId})
         
         
 
@@ -111,6 +115,15 @@ def getChatById(id: int) -> Chat:
             return i
     return Chat(id=id)
          
+def getOperationsForChat(id: int) -> Operations:
+    db.cursor.execute(f"select ID, UserFrom, UserTo, Qty, Comment, Type, ChatId from Operations where ID = {id}")
+    res = db.cursor.fetchall()[0]
+    if res[2] == '[]':
+        userTo = []
+    else:
+        userTo = [int(x) for x in res[2].replace('[', '').replace(']', '').replace(' ', '').split(',')]
+    return Operations(id=res[0], userFrom= res[1], userTo = userTo
+                    , qty=res[3], comment=res[4], type= res[5], chatId = res[6])
 
 init()
 

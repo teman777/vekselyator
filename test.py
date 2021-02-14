@@ -1,11 +1,10 @@
-import sqlite3
-import os
-from typing import Tuple, Dict, List
-import model
 
-import db_worker as db
+a = [1, 2, 3]
 
+b = str(a)
 
-print(db.fetchall('Operations', ['ID', 'Qty']))
-
+c = [int(d) for d in b.replace('[', '').replace(']', '').replace(' ', '').split(',')]
+print(a)
+print(b)
+print(c)
 
