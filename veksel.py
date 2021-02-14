@@ -12,7 +12,11 @@ dp = Dispatcher(bot)
 @dp.message_handler(commands = ['start'])
 async def start(message: types.Message):
     chat = model.getChatById(message.chat.id)
-    user = User(id=message.from_user.id, brief=message.from_user.username)
+    if message.from_user.username == None:
+        brief = message.from_user.first_name
+    else:
+        brief = message.from_user.username
+    user = User(id=message.from_user.id, brief=brief)
     chat.addUser(user)
     chat.save()
     
