@@ -46,6 +46,16 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
         result.append(dict_row)
     return result
 
+def getUsersForChat(id: int) -> List[Dict]:
+    cursor.execute(f"select u.ID, u.Brief"
+                   f"  from UserChatRelation cr"
+                   f"  join Users u"
+                   f"    on u.ID = cr.UserID"
+                   f" where cr.ChatID = {id}")
+    rows = cursor.fetchall()
+    return rows
+
+
 checkdb()
 
 
