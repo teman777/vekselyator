@@ -37,6 +37,7 @@ async def add(message: types.Message):
     for user in chat.users:
         if user.id != message.from_user.id:
             buttons.add(types.InlineKeyboardButton(text=user.brief, callback_data=callback+'/'+str( user.id) + '/' + str(operations.id)))
+    buttons.row(types.InlineKeyboardButton(text="<",callback_data='back'), types.InlineKeyboardButton(text=">",callback_data="forward"))
     await message.reply(text="Добавляем вексель\nКто задолжал?"
                        ,disable_notification = True
                        ,reply_markup = buttons)
@@ -51,13 +52,14 @@ async def addUserInline(callback_query: types.CallbackQuery):
     oper.save()
     chat = model.getChatById(callback_query.message.chat.id)
     chat.load()
-    buttons = types.InlineKeyboardMarkup()
+    buttons = types.InlineKeyboardMarkup(row_width=2)
     for user in chat.users:
         if user.id != callback_query.from_user.id:
             if user.id == userid or user.id in oper.userTo:          
                 buttons.add(types.InlineKeyboardButton(text=user.brief + ' +',callback_data='deleteuser/' + str(user.id) + '/' + str(operid)))
             else:
                 buttons.add(types.InlineKeyboardButton(text=user.brief,callback_data='adduser/' + str(user.id) + '/' + str(operid)))
+    buttons.row(types.InlineKeyboardButton(text="<",callback_data='back'), types.InlineKeyboardButton(text=">",callback_data="forward"))
     await callback_query.message.edit_reply_markup(buttons)
 
 @dp.callback_query_handler(lambda c: c.data.startswith('deleteuser'))
@@ -77,7 +79,9 @@ async def deleteUserInline(callback_query: types.CallbackQuery):
                 buttons.add(types.InlineKeyboardButton(text=user.brief,callback_data='adduser/' + str(user.id) + '/' + str(operid)))
             else:
                 buttons.add(types.InlineKeyboardButton(text=user.brief + ' +',callback_data='deleteuser/' + str(user.id) + '/' + str(operid)))
+    buttons.row(types.InlineKeyboardButton(text="<",callback_data='back'), types.InlineKeyboardButton(text=">",callback_data="forward"))
     await callback_query.message.edit_reply_markup(buttons)
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
