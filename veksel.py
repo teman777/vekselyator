@@ -33,11 +33,12 @@ async def add(message: types.Message):
                            ,qty = 0)
 
     operations.save()
+    operid = operations.id
     callback = 'adduser'
     for user in chat.users:
         if user.id != message.from_user.id:
             buttons.add(types.InlineKeyboardButton(text=user.brief, callback_data=callback+'/'+str( user.id) + '/' + str(operations.id)))
-    buttons.row(types.InlineKeyboardButton(text="<",callback_data='back'), types.InlineKeyboardButton(text=">",callback_data="forward"))
+    buttons.row(types.InlineKeyboardButton(text="Отмена",callback_data='back/'+str(operid)), types.InlineKeyboardButton(text="Далее",callback_data="forward/"+str(operid)))
     await message.reply(text="Добавляем вексель\nКто задолжал?"
                        ,disable_notification = True
                        ,reply_markup = buttons)
@@ -59,7 +60,7 @@ async def addUserInline(callback_query: types.CallbackQuery):
                 buttons.add(types.InlineKeyboardButton(text=user.brief + ' +',callback_data='deleteuser/' + str(user.id) + '/' + str(operid)))
             else:
                 buttons.add(types.InlineKeyboardButton(text=user.brief,callback_data='adduser/' + str(user.id) + '/' + str(operid)))
-    buttons.row(types.InlineKeyboardButton(text="<",callback_data='back'), types.InlineKeyboardButton(text=">",callback_data="forward"))
+    buttons.row(types.InlineKeyboardButton(text="Отмена",callback_data='back/'+str(operid)), types.InlineKeyboardButton(text="Далее",callback_data="forward/"+str(operid)))
     await callback_query.message.edit_reply_markup(buttons)
 
 @dp.callback_query_handler(lambda c: c.data.startswith('deleteuser'))
@@ -79,10 +80,16 @@ async def deleteUserInline(callback_query: types.CallbackQuery):
                 buttons.add(types.InlineKeyboardButton(text=user.brief,callback_data='adduser/' + str(user.id) + '/' + str(operid)))
             else:
                 buttons.add(types.InlineKeyboardButton(text=user.brief + ' +',callback_data='deleteuser/' + str(user.id) + '/' + str(operid)))
-    buttons.row(types.InlineKeyboardButton(text="<",callback_data='back'), types.InlineKeyboardButton(text=">",callback_data="forward"))
+    buttons.row(types.InlineKeyboardButton(text="Отмена",callback_data='back/'+str(operid)), types.InlineKeyboardButton(text="Далее",callback_data='forward/'+str(operid)))
     await callback_query.message.edit_reply_markup(buttons)
 
 
+@dp.callback_query_handler(lambda c: c.data.startswith('back/'))
+async def backButton(callback_query: types.CallbackQuery):
+    data = callback_query.data.split('/')
+    operid = int(data[1])
+    model.db.delete(table='Operations', row_id=operid)
+    await callback_query.message.delete()
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
 
