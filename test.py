@@ -1,5 +1,5 @@
 import db_worker as db
 
 
-print(db.fetchall('Users', ['ID', 'Brief']))
+print(db.fetchall('Operation',['ID', 'UTo', 'UFrom', 'Comment', 'Qty', 'ChatID']))
 

@@ -31,7 +31,17 @@ class Operations:
             self.id = db.cursor.lastrowid
         else:
             db.update('Operations', self.id, {'UserTo': str(self.userTo), 'UserFrom': self.userFrom, 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment, 'ChatId':self.chatId})
-        
+
+    def resolve(self):
+        calc_qty = self.qty
+        if self.type == 2:
+            calc_qty = calc_qty / len(self.userTo)
+        elif self.type in (1,3):
+            calc_qty = self.qty
+        for i in self.userTo:
+            operation = Operation(userTo=i,userFrom=self.userFrom,qty=calc_qty,chatId=self.chatId,comment=self.comment)
+            operation.save()
+
         
 
 class Operation:

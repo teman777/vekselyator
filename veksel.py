@@ -146,18 +146,24 @@ async def setType(callback_query: types.CallbackQuery):
     await callback_query.message.edit_text(text=message)
     await callback_query.message.edit_reply_markup(reply_markup=buttons)
 
-@dp.message_handler(lambda c: c.is_command() != True and re.match(r'\d+\.?\d\d\ ?\w*',c.text))  
+@dp.message_handler(lambda c: c.is_command() != True and re.match(r'\d+\.?\d*\ ?\w*',c.text))  
 async def finish(message: types.Message):
-    data = message.reply_to_message.reply_markup.inline_keyboard[0].callback_data.split('/')
+    data = message.reply_to_message.reply_markup.inline_keyboard[0][0].callback_data.split('/')
+    replied_message = message.reply_to_message
     operid = int(data[1])
-    qty = 0
-    comment = '123'
+    parsabletext = message.text
+    qtytext = re.findall(r'\d+\.?\d*', parsabletext)[0]
+    qty = float(qtytext)
+    comment = parsabletext[re.match(r'\d+\.?\d*', parsabletext).end() + 1:]
     oper = model.getOperationsForChat(operid)
     oper.qty = qty
     oper.comment = comment
     oper.save()
-
-    print(message.text)
+    oper.resolve()
+    
+    message = "Вексель добавлен"
+    await replied_message.edit_text(message)
+ 
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
