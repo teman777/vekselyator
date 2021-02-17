@@ -225,12 +225,12 @@ async def delOper(callback_query: types.CallbackQuery):
         prevIndex = len(opers) - 1
     if len(opers) > 0:
         buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)))
-    await callback_query.message.edit_text('Удалено')
-    await callback_query.message.edit_reply_markup(buttons)
-
-
-
-
+    message = 'Удалено'
+    if len(opers) == 0:
+        message = message + '\nУ тебя больше нет открытых векселей.'
+    await callback_query.message.edit_text(message)
+    if len(opers) > 0:
+        await callback_query.message.edit_reply_markup(buttons)
 
 
 def buildButtonsSet(oper:Operations,forcommand: str) -> [str, types.InlineKeyboardMarkup()]:
