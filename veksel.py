@@ -125,6 +125,32 @@ async def finish(message: types.Message):
     message = "Вексель добавлен"
     await replied_message.edit_text(message)
  
+@dp.message_handler(lambda m: m.is_command() and re.match(r'/del\d+', m.text))
+async def deleteOperation(message: types.Message):
+    chat = model.getChatById(message.chat.id)
+    chat.load()
+    operid = int(message.text[re.match(r'/del',message.text).end():])
+    for i in chat.operations:
+        if operid == i.id:
+            oper = i
+    model.db.delete('Operation', oper.id)
+    
+@dp.message_handler(commands=['my'])
+async def getMyOpers(message: types.Message):
+    chat = model.getChatById(message.chat.id)
+    chat.load()
+    opers = []
+    for o in chat.operations:
+        if message.from_user.id in (o.userFrom, o.userTo):
+            opers.append(o)
+    
+    mes = 'Список ваших векселей:'
+    for op in opers:
+        mes = mes + '\n' + getTextForOper(op) + '\nУдалить - /del'+str(op.id)
+    await message.reply(text=mes)
+            
+
+
 
 def buildButtonsSet(oper:Operations, forcommand: str) -> [str, types.InlineKeyboardMarkup()]:
     message = ''
@@ -159,6 +185,18 @@ def buildButtonsSet(oper:Operations, forcommand: str) -> [str, types.InlineKeybo
 
     return message, buttons
 
+def getTextForOper(oper: Operation) -> str:
+    chat = model.getChatById(oper.chatId)
+    chat.load()
+    users = chat.users
+    for u in users:
+        if u.id == oper.userFrom:
+            userFrom = u
+        elif u.id == oper.userTo:
+            userTo = u
+    message = 'От: ' + userFrom.brief + '\nКому: ' + userTo.brief + '\nСумма: ' + str(oper.qty) + '\nКомментарий: ' + oper.comment 
+    return message
+
 def parseCallback(callback_data: str) -> [int, int]:
     operid = 0
     dopid = 0
@@ -172,6 +210,8 @@ def parseCallback(callback_data: str) -> [int, int]:
         operid = int(data[2])
         dopid = int(data[1])
     return operid, dopid
+
+
     
 
 
