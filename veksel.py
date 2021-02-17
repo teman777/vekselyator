@@ -40,9 +40,7 @@ async def add(message: types.Message):
 
 @dp.callback_query_handler(lambda c: c.data.startswith('adduser'))
 async def addUserInline(callback_query: types.CallbackQuery):
-    data = callback_query.data.split('/')
-    operid = int(data[2])
-    userid = int(data[1])
+    operid, userid = parseCallback(callback_query.data)
     oper = model.getOperationsForChat(operid)
     oper.userTo.append(userid)
     if len(oper.userTo) > 1:
@@ -58,9 +56,7 @@ async def addUserInline(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data.startswith('deleteuser'))
 async def deleteUserInline(callback_query: types.CallbackQuery):
-    data = callback_query.data.split('/')
-    operid = int(data[2])
-    userid = int(data[1])
+    operid, userid = parseCallback(callback_query.data)
     oper = model.getOperationsForChat(operid)
     oper.userTo.remove(userid)
     if len(oper.userTo) > 1:
@@ -77,8 +73,7 @@ async def deleteUserInline(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data.startswith('back/'))
 async def backButton(callback_query: types.CallbackQuery):
-    data = callback_query.data.split('/')
-    operid = int(data[1])
+    operid, _ = parseCallback(callback_query.data)
     oper = model.getOperationsForChat(operid)
     if callback_query.from_user.id != oper.userFrom:
         return
@@ -88,8 +83,7 @@ async def backButton(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data.startswith('forward/'))
 async def nextButton(callback_query: types.CallbackQuery):
-    data = callback_query.data.split('/')
-    operid = int(data[1])
+    operid, _ = parseCallback(callback_query.data)
     oper = model.getOperationsForChat(operid)
     
     if callback_query.from_user.id != oper.userFrom:
@@ -101,9 +95,7 @@ async def nextButton(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data.startswith('settype/'))
 async def setType(callback_query: types.CallbackQuery):
-    data = callback_query.data.split('/')
-    operid = int(data[2])
-    type = int(data[1])
+    operid, type = parseCallback(callback_query.data)
     oper = model.getOperationsForChat(operid)
     if callback_query.from_user.id != oper.userFrom:
         return
@@ -166,6 +158,25 @@ def buildButtonsSet(oper:Operations, forcommand: str) -> [str, types.InlineKeybo
         buttons.row(types.InlineKeyboardButton(text="Отмена",callback_data='back/'+str(oper.id)))
 
     return message, buttons
+
+def parseCallback(callback_data: str) -> [int, int]:
+    operid = 0
+    dopid = 0
+    data = callback_data.split('/')
+    if data[0] in  ('adduser', 'deleteuser'):
+        operid = int(data[2])
+        dopid = int(data[1])
+    elif data[0] in ('back', 'forward'):
+        operid = int(data[1])
+    elif data[0] == 'settype':
+        operid = int(data[2])
+        dopid = int(data[1])
+    return operid, dopid
+    
+
+
+
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
