@@ -143,16 +143,97 @@ async def getMyOpers(message: types.Message):
     for o in chat.operations:
         if message.from_user.id in (o.userFrom, o.userTo):
             opers.append(o)
+    if len(opers) > 0:
+        oper = opers[0]
+        msg = 'Список векселей:\n' + getTextForOper(oper)
+        buttons = types.InlineKeyboardMarkup()
+        user = message.from_user.id
+        index = 0
+        buttons.add(types.InlineKeyboardButton(text='Удалить', callback_data='deloper/'+str(oper.id)+'/'+str(user)+'/0'))
+        if len(opers) > 1:
+            if index + 1 == len(opers):
+                nextIndex = 1
+                prevIndex = index - 1
+            elif index == 0:
+                nextIndex = index + 1
+                prevIndex = len(opers) - 1
+            else:
+                nextIndex = index + 1
+                prevIndex = index - 1
+            buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)))
+        await message.reply(text=msg, reply_markup= buttons, disable_notification=True)
+    else:
+        await message.reply(text='У тебя нет векселей', disable_notification=True)
+@dp.callback_query_handler(lambda c: c.data.startswith('get/'))
+async def getVekselByIndex(callback_query: types.CallbackQuery):
+    user, index = parseCallback(callback_query.data)
+    user = int(user)
+    index = int(index)
+    chat = model.getChatById(callback_query.message.chat.id)
+    chat.load()
+    userid = callback_query.from_user.id
+    if int(user) != userid:
+        return
+    opers = []
+    for o in chat.operations:
+        if userid in (o.userFrom, o.userTo):
+            opers.append(o)
+    oper = opers[int(index)]
+    message = 'Список векселей:\n'
+    message = message + getTextForOper(oper)
+    buttons = types.InlineKeyboardMarkup()
+    buttons.add(types.InlineKeyboardButton(text='Удалить', callback_data='deloper/'+str(oper.id)+'/'+str(user)+'/'+str(index)))
+    if len(opers) > 1:
+        if index + 1 == len(opers):
+            nextIndex = 0
+            prevIndex = index - 1
+        elif index == 0:
+            nextIndex = index + 1
+            prevIndex = len(opers) - 1
+        else:
+            nextIndex = index + 1
+            prevIndex = index - 1
+        
+        buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)))
+    await callback_query.message.edit_text(message)
+    await callback_query.message.edit_reply_markup(buttons)
     
-    mes = 'Список ваших векселей:'
-    for op in opers:
-        mes = mes + '\n' + getTextForOper(op) + '\nУдалить - /del'+str(op.id)
-    await message.reply(text=mes)
-            
+@dp.callback_query_handler(lambda c: c.data.startswith('deloper/'))
+async def delOper(callback_query: types.CallbackQuery):
+    operid, user = parseCallback(callback_query.data)
+    chat = model.getChatById(callback_query.message.chat.id)
+    chat.load()
+    operid = int(operid)
+    if int(user) != callback_query.from_user.id:
+        return
+    for op in chat.operations:
+        if op.id == operid:
+            operation = op
+    index = int(callback_query.data.split('/')[3])
+    model.db.delete('Operation', operation.id) 
+    chat.load()
+    opers = []
+    for o in chat.operations:
+        if int(user) in (o.userFrom, o.userTo):
+            opers.append(o)
+    buttons = types.InlineKeyboardMarkup()
+    nextIndex = index
+    prevIndex = index - 1
+    if nextIndex > len(opers) - 1:
+        nextIndex = 0
+    if prevIndex < 0:
+        prevIndex = len(opers) - 1
+    if len(opers) > 0:
+        buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)))
+    await callback_query.message.edit_text('Удалено')
+    await callback_query.message.edit_reply_markup(buttons)
 
 
 
-def buildButtonsSet(oper:Operations, forcommand: str) -> [str, types.InlineKeyboardMarkup()]:
+
+
+
+def buildButtonsSet(oper:Operations,forcommand: str) -> [str, types.InlineKeyboardMarkup()]:
     message = ''
     buttons = types.InlineKeyboardMarkup()
     chat = model.getChatById(oper.chatId)
@@ -209,6 +290,12 @@ def parseCallback(callback_data: str) -> [int, int]:
     elif data[0] == 'settype':
         operid = int(data[2])
         dopid = int(data[1])
+    elif data[0] == 'get':
+        dopid = data[1]
+        operid = data[2]
+    elif data[0] == 'deloper':
+        operid = data[1]
+        dopid = data[2]
     return operid, dopid
 
 

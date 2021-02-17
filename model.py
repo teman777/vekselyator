@@ -1,6 +1,6 @@
 import db_worker as db
-import json
 from typing import List, Tuple
+from datetime import datetime
 
 class User:
     def __init__(self, id: int, brief: str):
@@ -52,12 +52,13 @@ class Operation:
         self.qty = qty
         self.chatId = chatId
         self.comment = comment
+        self.date = datetime.now()
 
     def save(self):
         operation = db.cursor.execute(f"select 1 from Operation where ID = {self.id}")
         exists = operation.fetchall()
         if not exists or self.id == 0:
-            db.insert('Operation', {'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId})
+            db.insert('Operation', {'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId, 'Date': self.date})
             self.id = db.cursor.lastrowid
         elif exists:
             db.update('Operation', self.id ,{'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId})
