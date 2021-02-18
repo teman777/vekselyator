@@ -124,7 +124,35 @@ async def finish(message: types.Message):
     
     message = "Вексель добавлен"
     await replied_message.edit_text(message)
- 
+
+@dp.message_handler(commands = ['all'])
+async def getAllOperationsForChat(message: types.Message):
+    chat = model.getChatById(message.chat.id)
+    chat.load()
+    operations = chat.operations
+    if len(operations) > 0:
+        oper = operations[0]
+        msg = 'Список векселей:\n' + getTextForOper(oper)
+        buttons = types.InlineKeyboardMarkup()
+        user = message.from_user.id
+        index = 0
+        buttons.add(types.InlineKeyboardButton(text='Удалить', callback_data='deloper/'+str(oper.id)+'/'+str(user)+'/0'))
+        if len(operations) > 1:
+            if index + 1 == len(operations):
+                nextIndex = 1
+                prevIndex = index - 1
+            elif index == 0:
+                nextIndex = index + 1
+                prevIndex = len(operations) - 1
+            else:
+                nextIndex = index + 1
+                prevIndex = index - 1
+            buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)+'/2'), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)+'/2'))
+        await message.reply(text=msg, reply_markup= buttons, disable_notification=True)
+    else:
+        await message.reply(text='У тебя нет векселей', disable_notification=True)
+
+
 @dp.message_handler(lambda m: m.is_command() and re.match(r'/del\d+', m.text))
 async def deleteOperation(message: types.Message):
     chat = model.getChatById(message.chat.id)
@@ -172,11 +200,17 @@ async def getVekselByIndex(callback_query: types.CallbackQuery):
     chat = model.getChatById(callback_query.message.chat.id)
     chat.load()
     userid = callback_query.from_user.id
+    
+    if callback_query.data.split('/')[3] == '2':
+        isAnotherCommand = True
+    else:
+        isAnotherCommand = False
+
     if int(user) != userid:
         return
     opers = []
     for o in chat.operations:
-        if userid in (o.userFrom, o.userTo):
+        if userid in (o.userFrom, o.userTo) or isAnotherCommand:
             opers.append(o)
     oper = opers[int(index)]
     message = 'Список векселей:\n'
@@ -194,7 +228,11 @@ async def getVekselByIndex(callback_query: types.CallbackQuery):
             nextIndex = index + 1
             prevIndex = index - 1
         
-        buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)))
+        if not isAnotherCommand:
+            buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)))
+        else:
+            buttons.row(types.InlineKeyboardButton(text='<', callback_data='get/'+str(prevIndex)+'/'+str(user)+'/2'), types.InlineKeyboardButton(text='>', callback_data='get/' + str(nextIndex)+'/'+str(user)+'/2'))
+
     await callback_query.message.edit_text(message)
     await callback_query.message.edit_reply_markup(buttons)
     
