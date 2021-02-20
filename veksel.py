@@ -152,6 +152,9 @@ async def getAllOperationsForChat(message: types.Message):
     else:
         await message.reply(text='У тебя нет векселей', disable_notification=True)
 
+@dp.message_handler(lambda m: not m.is_command() and m.text.replace(' ','') == 'да?')
+async def replyRofl(message: types.Message):
+    await message.reply('Как говорит Ян - это нормальная тема')
 
 @dp.message_handler(lambda m: m.is_command() and re.match(r'/del\d+', m.text))
 async def deleteOperation(message: types.Message):
