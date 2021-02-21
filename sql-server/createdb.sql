@@ -1,20 +1,22 @@
-create table Users            
+create DATABASE if not exists veksel;
+use veksel;
+create table if not exists Users            
             (ID INTEGER  unique primary key 
             ,Brief varchar(50)
             );
             
 
-create table Chats
+create table if not exists Chats
             (ID integer unique primary key);
 
-create table UserChatRelation
+create table if not exists UserChatRelation
             (ID integer primary key autoincrement
             ,ChatID integer 
             ,UserID integer
             ,FOREIGN KEY (ChatID) references Chats(ID)
             ,FOREIGN KEY (UserID) references Users(ID));
             
-create table Operation
+create table if not exists Operation
             (ID     integer primary key autoincrement
             ,UFrom  integer 
             ,UTo    integer
@@ -27,7 +29,7 @@ create table Operation
             ,FOREIGN KEY (ChatID) references  Chats(ID)
             );
 
-create table Operations
+create table if not exists Operations
             (ID     integer primary key autoincrement
             ,UserFrom  integer 
             ,UserTo    varchar(255)
