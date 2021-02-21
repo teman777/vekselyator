@@ -1,8 +1,8 @@
-import sqlite3
+import mysql.connector as connector
 import os
 from typing import Tuple, Dict, List
 
-conn = sqlite3.connect('veksel.db')
+conn = connector.connect(host='localhost', database='veksel', user='root', password='veksekbotpassword')
 cursor = conn.cursor()
 
 def _init_db():
