@@ -51,6 +51,14 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
         result.append(dict_row)
     return result
 
+def isExists(table: str, id: int) -> bool:
+    cursor.execute(f"select 1 from {table} where ID = {id}")
+    if cursor.fetchall():
+        res = True
+    else:
+        res = False
+    return res
+
 def getUsersForChat(id: int) -> List[Dict]:
     cursor.execute(f"select u.ID, u.Brief"
                    f"  from UserChatRelation cr"

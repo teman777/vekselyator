@@ -49,7 +49,13 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
         result.append(dict_row)
     return result
 
+def isExists(table: str, id: int) -> bool:
+    cursor.execute(f"select 1 from {table} where ID = {id}")
+    if cursor.fetchall():
+        res = True
+    else:
+        res = False
+    return res
 
-print(fetchall('Users', {'ID','Brief'}))
 
 """update('Users', 7, {'Brief': 'Dima'})"""

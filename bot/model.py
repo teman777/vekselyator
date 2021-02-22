@@ -8,8 +8,7 @@ class User:
         self.brief = brief
 
     def save(self):
-        user = db.cursor.execute(f"select 1 from Users where ID = {self.id}")
-        exists = user.fetchall()
+        exists = db.isExists('Users', self.id)
         if not exists:
             db.insert('Users', {'ID': self.id, 'Brief': self.brief})
 
@@ -25,8 +24,8 @@ class Operations:
         self.type   = type
         self.id = id
     def save(self):
-        oper = db.cursor.execute(f"select 1 from Operations where ID = {self.id}").fetchall()
-        if not oper:
+        exists = db.isExists('Operations', self.id)
+        if not exists:
             db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
             self.id = db.cursor.lastrowid
         else:
@@ -55,8 +54,7 @@ class Operation:
         self.date = datetime.now()
 
     def save(self):
-        operation = db.cursor.execute(f"select 1 from Operation where ID = {self.id}")
-        exists = operation.fetchall()
+        exists = db.isExists('Operation', self.id)
         if not exists or self.id == 0:
             db.insert('Operation', {'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId, 'Date': self.date})
             self.id = db.cursor.lastrowid
@@ -108,6 +106,12 @@ class Chat:
             oper.save()
             
 chats = []
+operations = []
+
+def saveChat(chat: Chat):
+    for ch in chats:
+        if ch.id == chat.id:
+            chat.save()
 
 def init():
     chats = []
@@ -117,8 +121,6 @@ def init():
         chatsav.load()
         chats.append(chatsav)
 
-def update():
-    init()
 
 def getChatById(id: int) -> Chat:
     for i in chats:
