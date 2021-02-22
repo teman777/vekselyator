@@ -2,7 +2,9 @@ import mysql.connector as connector
 import os
 from typing import Tuple, Dict, List
 
-db_password = 'vekselbotpassword'
+db_password = os.getenv('DB_PASSWORD')
+if db_password == None:
+    db_password = 'vekselbotpassword'
 
 conn = connector.connect(host='localhost'
                         ,database='veksel'
@@ -14,29 +16,25 @@ cursor = conn.cursor()
 def insert(table: str, column_values: Dict):
     columns = ', '.join(column_values.keys())
     values = tuple(column_values.values())
-    placeholder = ', '.join("?" * len(column_values.keys()))
+    placeholder = ', '.join(['%s'] * len(column_values.keys()))
     cursor.execute(f"insert into {table}"
-                   f"({columns})"
+                   f"({columns}) "
                    f"values({placeholder})"
                    ,values)
     conn.commit()
 
 
 def update(table: str, id: int ,column_values: Dict):
-    col = column_values.keys()
-    colwithplace = []
-    for c in col:
-        colwithplace.append(c + ' = ?')
-    columns = ', '.join(colwithplace)
-    values = tuple(column_values.values())
-    
+    columns = column_values.keys()
+    values  = tuple(column_values.values())
+    columns_with_placeholders = ', '.join(x + ' = %s' for x in columns)
     cursor.execute(f"update {table}"
-                       f"  set {columns}"
-                       f" where ID = {id}"
-                       , values)
+                   f"   set {columns_with_placeholders}"
+                   f" where ID = {id}"
+                   ,values)
     conn.commit()
 
-def delete(table: str, row_id:int) -> None:
+def delete(table: str, row_id:int):
     row_id = int(row_id)
     cursor.execute(f"delete from {table} where ID={row_id}")
     conn.commit()
