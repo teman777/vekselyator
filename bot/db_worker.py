@@ -2,22 +2,14 @@ import mysql.connector as connector
 import os
 from typing import Tuple, Dict, List
 
-conn = connector.connect(host='localhost', database='veksel', user='root', password='veksekbotpassword')
+db_password = 'vekselbotpassword'
+
+conn = connector.connect(host='localhost'
+                        ,database='veksel'
+                        ,user='root'
+                        ,password=db_password
+                        ,auth_plugin='mysql_native_password')
 cursor = conn.cursor()
-
-def _init_db():
-    with open("createdb.sql", "r") as f:
-        sql = f.read()
-    cursor.executescript(sql)
-    conn.commit()
-
-def checkdb():
-    cursor.execute("select name from sqlite_master "
-                   "where type='table' and name='Users'")
-    table_exists = cursor.fetchall()
-    if table_exists:
-        return
-    _init_db()
 
 def insert(table: str, column_values: Dict):
     columns = ', '.join(column_values.keys())
@@ -77,6 +69,4 @@ def getOperationsForChat(id: int) -> List[Dict]:
     rows = cursor.fetchall()
     return rows
 
-
-checkdb()
 
