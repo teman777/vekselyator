@@ -239,15 +239,6 @@ async def getVekselByIndex(callback_query: types.CallbackQuery):
     await callback_query.message.edit_text(message)
     await callback_query.message.edit_reply_markup(buttons)
 
-@dp.message_handler(commands=['saldo'])
-async def getSaldo(message: types.Message):
-    chat = model.getChatById(message.chat.id)
-    chat.load()
-    operations = chat.operations
-    users = chat.users
-    
-    
-        
 
 
 

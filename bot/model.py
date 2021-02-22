@@ -11,6 +11,8 @@ class User:
         exists = db.isExists('Users', self.id)
         if not exists:
             db.insert('Users', {'ID': self.id, 'Brief': self.brief})
+        else:
+            db.update('Users', self.id ,{'Brief': self.brief})
 
 
 
@@ -31,6 +33,10 @@ class Operations:
         else:
             db.update('Operations', self.id, {'UserTo': str(self.userTo), 'UserFrom': self.userFrom, 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment, 'ChatId':self.chatId})
 
+    def delete(self):
+        if self.id != 0:
+            db.delete('Operations', self.id)
+
     def resolve(self):
         calc_qty = self.qty
         if self.type == 2:
@@ -38,8 +44,9 @@ class Operations:
         elif self.type in (1,3):
             calc_qty = self.qty
         for i in self.userTo:
-            operation = Operation(userTo=i,userFrom=self.userFrom,qty=calc_qty,chatId=self.chatId,comment=self.comment)
-            operation.save()
+            if i != self.userFrom:
+                operation = Operation(userTo=i,userFrom=self.userFrom,qty=calc_qty,chatId=self.chatId,comment=self.comment)
+                operation.save()
 
         
 
@@ -80,6 +87,7 @@ class Chat:
     def addOperation(self, operation: Operation):
         self.operations.append(operation)
     
+
     def load(self):
         self.users = []
         self.operations = []
@@ -91,53 +99,39 @@ class Chat:
             self.operations.append(Operation(id=o[0],userFrom=o[1], userTo=o[2], qty=o[3], comment=o[4], chatId = self.id))
     
     def save(self):
-        chat = db.cursor.execute(f"select 1 from Chats where ID = {self.id}")
-        exists = chat.fetchall()
+        exists = db.isExists('Chats', self.id)
         if not exists:
             db.insert('Chats',{'ID': self.id})
         for user in self.users:
             user.save()
-            relexist = db.cursor.execute(f"select 1 from UserChatRelation"
-                                         f" where ChatID = {self.id}"
-                                         f"   and UserID = {user.id}")
-            if not relexist.fetchall():
+            relexist = db.isExistsRelation(self.id, user.id)
+            if not relexist:
                 db.insert('UserChatRelation', {'ChatID':self.id, 'UserID':user.id})
         for oper in self.operations:
             oper.save()
             
-chats = []
-operations = []
-
-def saveChat(chat: Chat):
-    for ch in chats:
-        if ch.id == chat.id:
-            chat.save()
-
-def init():
-    chats = []
-    chatdb = db.fetchall('Chats', ['ID'])
-    for chat in chatdb:
-        chatsav = Chat(id=chat['ID'])
-        chatsav.load()
-        chats.append(chatsav)
 
 
 def getChatById(id: int) -> Chat:
-    for i in chats:
-        if i.id == id:
-            return i
-    return Chat(id=id)
-         
-def getOperationsForChat(id: int) -> Operations:
-    db.cursor.execute(f"select ID, UserFrom, UserTo, Qty, Comment, Type, ChatId from Operations where ID = {id}")
-    res = db.cursor.fetchall()[0]
-    if res[2] == '[]':
-        userTo = []
-    else:
-        userTo = [int(x) for x in res[2].replace('[', '').replace(']', '').replace(' ', '').split(',')]
-    return Operations(id=res[0], userFrom= res[1], userTo = userTo
-                    , qty=res[3], comment=res[4], type= res[5], chatId = res[6])
+    chat = Chat(id)
+    chat.load()
+    return chat
 
-init()
+def getOperationList(chat: Chat, user: User) -> List[Operation]:
+    return List()
+    
+
+
+def getOperationsForChat(id: int) -> Operations:
+    if id != 0:
+        db.cursor.execute(f"select ID, UserFrom, UserTo, Qty, Comment, Type, ChatId from Operations where ID = {id}")
+        res = db.cursor.fetchall()[0]
+        if res[2] == '[]':
+            userTo = []
+        else:
+            userTo = [int(x) for x in res[2].replace('[', '').replace(']', '').replace(' ', '').split(',')]
+        return Operations(id=res[0], userFrom= res[1], userTo = userTo
+                    , qty=res[3], comment=res[4], type= res[5], chatId = res[6])
+    return None
 
 

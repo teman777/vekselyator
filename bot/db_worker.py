@@ -59,6 +59,16 @@ def isExists(table: str, id: int) -> bool:
         res = False
     return res
 
+def isExistsRelation(chat_id: int, user_id: int) -> bool:
+    cursor.execute(f"select 1 from UserChatRelation"
+                   f" where ChatID = {chat_id}"
+                   f"   and UserID = {user_id}")
+    if cursor.fetchall():
+        res = True
+    else:
+        res = False
+    return res
+
 def getUsersForChat(id: int) -> List[Dict]:
     cursor.execute(f"select u.ID, u.Brief"
                    f"  from UserChatRelation cr"
