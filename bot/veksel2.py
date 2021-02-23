@@ -59,7 +59,7 @@ async def addUser(callback_query: types.CallbackQuery):
     operID = dt['operID']
     userID = dt['userID']
     add_or_delete = dt['type']
-    oper = model.getOperationsForChat(operID)
+    oper = model.getOperations(operID)
     if add_or_delete == 'adduser':
         oper.userTo.append(userID)
     elif add_or_delete == 'deluser':
@@ -75,7 +75,7 @@ async def nextInline(callback_query: types.CallbackQuery):
         return
     dt = parseCallback(callback_query.data)
     operID = dt['operID']
-    operations = model.getOperationsForChat(operID)
+    operations = model.getOperations(operID)
     buttons = buildButtonsNext(operID)
     if len(operations.userTo) > 1:
         msg = 'Выбери тип векселя' 
@@ -91,7 +91,7 @@ async def deleteOperations(callback_query: types.CallbackQuery):
         return
     dt = parseCallback(callback_query.data)
     operID = dt['operID']
-    operations = model.getOperationsForChat(operID)
+    operations = model.getOperations(operID)
     operations.delete()
     await callback_query.message.delete()
 
@@ -103,14 +103,14 @@ async def setType(callback_query: types.CallbackQuery):
     dt = parseCallback(callback_query.data)
     operID = dt['operID']
     tp = dt['typenew']
-    oper = model.getOperationsForChat(operID)
+    oper = model.getOperations(operID)
     oper.type = tp
     oper.save()
     cancel_bt = types.InlineKeyboardButton(text = 'Отмена'
                                           ,callback_data='deloper/' + str(operID))
     buttons = types.InlineKeyboardMarkup()
     buttons.add(cancel_bt)
-    await callback_query.messagel.edit_text('Чтобы закончить вексель - ответь на это сообщение в формате Сумма + комментарий\nПример: 1234.34 За еблю с гнилозубом')
+    await callback_query.message.edit_text('Чтобы закончить вексель - ответь на это сообщение в формате Сумма + комментарий\nПример: 1234.34 За еблю с гнилозубом')
     await callback_query.message.edit_reply_markup(buttons)
     
 
@@ -121,7 +121,7 @@ async def finish(message: types.Message):
     data = message.reply_to_message.reply_markup.inline_keyboard[0][0].callback_data
     dt = parseCallback(data)
     operID = dt['operID']
-    oper = model.getOperationsForChat(operID)
+    oper = model.getOperations(operID)
     if oper.userFrom != message.from_user.id:
         return
     
@@ -136,6 +136,86 @@ async def finish(message: types.Message):
     oper.delete()
     await message.reply_to_message.edit_text('Вексель добавлен')
 
+# Сальдо
+@dp.message_handler(commands = ['saldo'])
+async def saldo(message: types.Message):
+    chat = model.getChatById(message.chat.id)
+    oper = chat.operations
+    users = chat.users
+    
+    
+
+# Ниже блок со списком векселей - команды /my, /all
+# Команды очень похожи, list векселей только будет отличаться
+
+@dp.message_handler(commands=['my', 'all'])
+async def listCommand(message:  types.Message):
+    chat = model.getChatById(message.chat.id)
+    user_id = 0
+    if message.text == '/my':
+        user_id = message.from_user.id
+    operations = model.getOperationsIdList(chat, user_id)
+    if len(operations) > 0:
+        oper_id = operations[0]
+        text = 'Твои вексели:\n' if message.text == '/my' else 'Вексели чата:\n'
+        text = text + getTextForOperation(oper_id)
+
+    else:
+        oper_id = 0
+        if message.text == '/all':
+            text = 'В этом чате нет открытых векселей.'
+        else:
+            text = 'У тебя нет открытых векселей.'
+    tp = 0 if message.text == '/all' else 1
+    buttons = buildButtonsList(oper_id, message.from_user.id, operations, tp)
+    await message.reply(text = text, reply_markup = buttons)
+
+@dp.callback_query_handler(lambda c: c.data.startswith('get'))
+async def getOper(callback_query: types.CallbackQuery):
+    src_user = callback_query.message.reply_to_message.from_user.id
+    if src_user != callback_query.from_user.id:
+        return
+    dt = parseCallback(callback_query.data)
+    oper_id = dt['operID']
+    tp = dt['command']
+    chat = model.getChatById(callback_query.message.chat.id)
+    user_id = 0 if tp == 0 else callback_query.from_user.id
+    l = model.getOperationsIdList(chat, user_id)
+    user_id = callback_query.from_user.id
+    buttons = buildButtonsList(oper_id, user_id, l, tp)
+    if tp == 0:
+        text = 'Вексели чата:\n'
+    else:
+        text = 'Твои вексели:\n'
+    text = text + getTextForOperation(oper_id)
+    await callback_query.message.edit_text(text)
+    await callback_query.message.edit_reply_markup(buttons)
+
+@dp.callback_query_handler(lambda c: c.data.startswith('delete'))
+async def deleteOper(callback_query: types.CallbackQuery):
+    src_user = callback_query.message.reply_to_message.from_user.id
+    if src_user != callback_query.from_user.id:
+        return
+    dt = parseCallback(callback_query.data)
+    operID = dt['operID']
+    chat = model.getChatById(callback_query.from_user.id)
+    tp = dt['command']
+    user_id = 0 if tp == 0 else callback_query.from_user.id
+    l = model.getOperationsIdList(chat, user_id)
+    oper = model.getOperation(operID)
+    buttons = buildButtonsList(operID, 0, l, tp)
+    oper.delete()
+    text = 'Удалено'
+    await callback_query.message.edit_text(text)
+    await callback_query.message.edit_reply_markup(buttons)
+
+@dp.callback_query_handler(lambda c: c.data.startswith('cancel'))
+async def cancel(callback_query: types.CallbackQuery):
+    src_user = callback_query.message.reply_to_message.from_user.id
+    if src_user != callback_query.from_user.id:
+        return
+    await callback_query.message.delete()
+
 
 # Пасхалочка
 @dp.message_handler(commands=['da?'])
@@ -143,6 +223,34 @@ async def rolfMsg(message: types.Message):
     await message.reply('Как говорит Ян - это нормальная тема.')
 
 # Технические процедурки
+
+def getTextForOperation(operation_id: int) -> str:
+    dt = model.getOperationText(operation_id)
+
+    res = 'От: ' + dt['UserFrom'] + '\nКому: ' + dt['UserTo'] + '\nСумма: ' + str(dt['Qty']) + '\n' + dt['Comment']
+    return res
+
+def buildButtonsList(operation_id: int, user: int = 0, operations: List[int] = [], tp: int = 0) -> types.InlineKeyboardMarkup():
+    buttons = types.InlineKeyboardMarkup()
+    if len(operations) != 0:
+        if len(operations) > 1:
+            curr_index = operations.index(operation_id)
+            prev_index = curr_index - 1 if curr_index > 0 else len(operations) - 1
+            next_index = curr_index + 1 if curr_index < len(operations) - 1 else 0
+            next_item = operations[next_index]
+            prev_item = operations[prev_index]
+            next_button = types.InlineKeyboardButton(text = '>'
+                                                    ,callback_data = 'get/'+str(next_item)+'/'+str(tp))
+            prev_button = types.InlineKeyboardButton(text = '<'
+                                                    ,callback_data = 'get/'+str(prev_item)+'/'+str(tp))
+            buttons.row(prev_button, next_button)
+        oper = model.getOperation(operation_id)
+        if oper.userFrom == user:
+            buttons.add(types.InlineKeyboardButton(text = 'Удалить', callback_data = 'delete/' + str(operation_id)+'/'+str(tp)))
+     
+    buttons.add(types.InlineKeyboardButton(text = 'Закрыть', callback_data = 'cancel'))
+        
+    return buttons
 
 
 
@@ -154,11 +262,13 @@ def parseCallback(callback_data: str) -> Dict:
         result = {'type': splitted[0], 'operID': int(splitted[1])}
     elif splitted[0] == 'settype':
         result = {'type': splitted[0], 'typenew': int(splitted[1]), 'operID': int(splitted[2])}
+    elif splitted[0] in ('get', 'delete'):
+        result = {'type': splitted[0], 'operID': int(splitted[1]), 'command': int(splitted[2])}
     return result
 
 def buildButtonsNext(operation_id: int) -> types.InlineKeyboardMarkup:
     buttons = types.InlineKeyboardMarkup()
-    operations = model.getOperationsForChat(operation_id)
+    operations = model.getOperations(operation_id)
     if len(operations.userTo) > 1:
         type_1 = types.InlineKeyboardButton(text = 'Делим на всех'
                                            ,callback_data = 'settype/2/' + str(operation_id))
@@ -173,7 +283,7 @@ def buildButtonsNext(operation_id: int) -> types.InlineKeyboardMarkup:
 
 def buildButtonsAdd(chat: Chat, operation_id: int) -> types.InlineKeyboardMarkup:
     buttons = types.InlineKeyboardMarkup()
-    operations = model.getOperationsForChat(operation_id)
+    operations = model.getOperations(operation_id)
     users = chat.users
     need_next = False
     for user in users:

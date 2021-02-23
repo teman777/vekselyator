@@ -35,7 +35,6 @@ def update(table: str, id: int ,column_values: Dict):
     conn.commit()
 
 def delete(table: str, row_id:int):
-    row_id = int(row_id)
     cursor.execute(f"delete from {table} where ID={row_id}")
     conn.commit()
 
