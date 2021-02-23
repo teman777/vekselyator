@@ -1,51 +1,40 @@
-import sqlite3
+import mysql.connector as connector
 import os
 from typing import Tuple, Dict, List
 
-conn = sqlite3.connect('veksel.db')
+db_password = os.getenv('DB_PASSWORD')
+if db_password == None:
+    db_password = 'vekselbotpassword'
+
+conn = connector.connect(host='bot-sql-server'
+                        ,database='veksel'
+                        ,user='root'
+                        ,password=db_password
+                        ,auth_plugin='mysql_native_password')
 cursor = conn.cursor()
-
-def _init_db():
-    with open("createdb.sql", "r") as f:
-        sql = f.read()
-    cursor.executescript(sql)
-    conn.commit()
-
-def checkdb():
-    cursor.execute("select name from sqlite_master "
-                   "where type='table' and name='Users'")
-    table_exists = cursor.fetchall()
-    if table_exists:
-        return
-    _init_db()
 
 def insert(table: str, column_values: Dict):
     columns = ', '.join(column_values.keys())
     values = tuple(column_values.values())
-    placeholder = ', '.join("?" * len(column_values.keys()))
+    placeholder = ', '.join(['%s'] * len(column_values.keys()))
     cursor.execute(f"insert into {table}"
-                   f"({columns})"
+                   f"({columns}) "
                    f"values({placeholder})"
                    ,values)
     conn.commit()
 
 
 def update(table: str, id: int ,column_values: Dict):
-    col = column_values.keys()
-    colwithplace = []
-    for c in col:
-        colwithplace.append(c + ' = ?')
-    columns = ', '.join(colwithplace)
-    values = tuple(column_values.values())
-    
+    columns = column_values.keys()
+    values  = tuple(column_values.values())
+    columns_with_placeholders = ', '.join(x + ' = %s' for x in columns)
     cursor.execute(f"update {table}"
-                       f"  set {columns}"
-                       f" where ID = {id}"
-                       , values)
+                   f"   set {columns_with_placeholders}"
+                   f" where ID = {id}"
+                   ,values)
     conn.commit()
 
-def delete(table: str, row_id:int) -> None:
-    row_id = int(row_id)
+def delete(table: str, row_id:int):
     cursor.execute(f"delete from {table} where ID={row_id}")
     conn.commit()
 
@@ -60,6 +49,24 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
             dict_row[column] = row[index]
         result.append(dict_row)
     return result
+
+def isExists(table: str, id: int) -> bool:
+    cursor.execute(f"select 1 from {table} where ID = {id}")
+    if cursor.fetchall():
+        res = True
+    else:
+        res = False
+    return res
+
+def isExistsRelation(chat_id: int, user_id: int) -> bool:
+    cursor.execute(f"select 1 from UserChatRelation"
+                   f" where ChatID = {chat_id}"
+                   f"   and UserID = {user_id}")
+    if cursor.fetchall():
+        res = True
+    else:
+        res = False
+    return res
 
 def getUsersForChat(id: int) -> List[Dict]:
     cursor.execute(f"select u.ID, u.Brief"
@@ -77,6 +84,4 @@ def getOperationsForChat(id: int) -> List[Dict]:
     rows = cursor.fetchall()
     return rows
 
-
-checkdb()
 
