@@ -148,9 +148,11 @@ async def saldo(message: types.Message):
         if (oper.userFrom, oper.userTo) in user_pairs.keys():
             qty = user_pairs[(oper.userFrom, oper.userTo)]
             qty = qty + oper.qty
+	    user_pairs[(oper.userFrom, oper.userTo)] = qty
         elif (oper.userTo, oper.userFrom) in user_pairs.keys():
             qty = user_pairs[(oper.userTo, oper.userFrom)]
             qty = qty - oper.qty
+	    user_pairs[(oper.userTo,oper.userFrom)] = qty
         else:
             user_pairs[(oper.userFrom, oper.userTo)] = oper.qty
     text = getTextForSaldo(user_pairs, chat)
