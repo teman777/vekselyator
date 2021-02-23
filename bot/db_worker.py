@@ -6,7 +6,7 @@ db_password = os.getenv('DB_PASSWORD')
 if db_password == None:
     db_password = 'vekselbotpassword'
 
-conn = connector.connect(host='localhost'
+conn = connector.connect(host='bot-sql-server'
                         ,database='veksel'
                         ,user='root'
                         ,password=db_password

@@ -4,11 +4,14 @@ services:
                 build: ./bot-sql-server
                 ports:
                         - "3306:3306"
+
                 volumes:
                         - ./bot-sql-server/data_volume:/var/lib/mysql
         tg-bot:
                 build: ./bot
-                ports:
-                        - "3306:3306"
+                restart: on-failure
+
+
+
                 
                 
