@@ -1,4 +1,4 @@
-create DATABASE if not exists veksel;
+create DATABASE if not exists veksel CHARACTER SET utf8 COLLATE utf8_general_ci;
 use veksel;
 create table if not exists Users            
             (ID int  unique primary key 
