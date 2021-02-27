@@ -98,13 +98,13 @@ class Chat:
 
     def load(self):
         self.users = []
-        self.operations = []
+        self.operations = []      
         us = db.getUsersForChat(self.id)
         op = db.getOperationsForChat(self.id)
         for u in us:
             self.users.append(User(u[0], u[1]))
         for o in op:
-            self.operations.append(Operation(id=o[0],userFrom=o[1], userTo=o[2], qty=o[3], comment=o[4], chatId = self.id))
+            self.operations.append(Operation(id=int(o[0]),userFrom=int(o[1]), userTo=int(o[2]), qty=float(o[3]), comment=o[4], chatId = int(self.id)))
     
     def save(self):
         exists = db.isExists('Chats', self.id)
@@ -139,7 +139,7 @@ def getOperations(id: int) -> Operations:
 
 def getOperation(id: int) -> Operation:
     if id != 0:
-        res = db.getOperationsForChat(id)
+        res = db.getOperationByID(id)
         return Operation(id=res[0], userFrom= res[1], userTo = res[2]
                     , qty=res[3], comment=res[4], chatId = res[5])
     return None
@@ -153,7 +153,7 @@ def getOperationsIdList(chat: Chat, user_id: int = 0) -> List[int]:
     return res
 
 def getOperationText(operation_id: int) -> Dict:
-    dt = db.getOperationText(id)
+    dt = db.getOperationText(operation_id)
     return dt
 
 

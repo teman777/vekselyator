@@ -6,7 +6,7 @@ import re
 import os
 
 api = os.getenv('TG_API')
-
+api = '1575260517:AAEXiFbeffmgJXjeNg5Tkyb05EwiIgSUKFU'
 
 bot = Bot(token=api)
 dp = Dispatcher(bot)

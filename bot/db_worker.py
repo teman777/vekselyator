@@ -4,10 +4,10 @@ from typing import Tuple, Dict, List
 
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 
-
+DB_PASSWORD = 'vekselbotpassword'
 
 def connect():
-    conn = connector.connect(host='bot-sql-server'
+    conn = connector.connect(host='localhost'
                             ,database='veksel'
                             ,user='root'
                             ,password=DB_PASSWORD
@@ -122,7 +122,18 @@ def getOperationsForChat(id: int) -> List[Dict]:
     conn.close()
     return rows
 
-def getOperationsBuf(id: int) -> List[Dict]:
+def getOperationByID(id: int) -> Dict:
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute(f"select ID, UFrom, UTo, Qty, Comment, ChatID"
+                   f"  from Operation"
+                   f" where ID = {id}")
+    res = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return res
+
+def getOperationsBuf(id: int) -> Dict:
     conn = connect()
     cursor = conn.cursor()
     cursor.execute(f"select ID, UserFrom, UserTo, Qty, Comment, Type, ChatId from Operations where ID = {id}")
@@ -155,15 +166,14 @@ def getOperationText(operation_id: int) -> Dict:
     conn = connect()
     cursor = conn.cursor()
     cursor.execute(f"select u1.Brief, u2.Brief, o.Qty, o.Comment"
-                      f"  from Operation o"
-                      f"  join Users u1"
-                      f"    on u1.ID = o.UFrom"
-                      f"  join Users u2"
-                      f"    on u2.ID = o.UTo "
-                      f"where o.ID = {operation_id}")
+                   f"  from Operation o"
+                   f"  join Users u1"
+                   f"    on u1.ID = o.UFrom"
+                   f"  join Users u2"
+                   f"    on u2.ID = o.UTo "
+                   f" where o.ID = {operation_id}")
     res = cursor.fetchone()
     cursor.close()
     conn.close()
     dt = {'UserFrom': res[0], 'UserTo': res[1], 'Qty': float(res[2]), 'Comment': res[3]}
-    
     return dt
