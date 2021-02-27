@@ -28,8 +28,8 @@ class Operations:
     def save(self):
         exists = db.isExists('Operations', self.id)
         if not exists:
-            db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
-            self.id = db.cursor.lastrowid
+            lastid = db.insert('Operations', {'ChatId': self.chatId, 'UserFrom': self.userFrom, 'UserTo': str(self.userTo), 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment})
+            self.id = lastid
         else:
             db.update('Operations', self.id, {'UserTo': str(self.userTo), 'UserFrom': self.userFrom, 'Qty': self.qty, 'Type': self.type, 'Comment': self.comment, 'ChatId':self.chatId})
 
@@ -67,8 +67,8 @@ class Operation:
     def save(self):
         exists = db.isExists('Operation', self.id)
         if not exists or self.id == 0:
-            db.insert('Operation', {'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId, 'Date': self.date})
-            self.id = db.cursor.lastrowid
+            lastid = db.insert('Operation', {'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId, 'Date': self.date})
+            self.id = lastid
         elif exists:
             db.update('Operation', self.id ,{'UFrom': self.userFrom, 'UTo': self.userTo, 'Qty':self.qty, 'Comment': self.comment, 'ChatID': self.chatId})
 
@@ -128,8 +128,7 @@ def getChatById(id: int) -> Chat:
 
 def getOperations(id: int) -> Operations:
     if id != 0:
-        db.cursor.execute(f"select ID, UserFrom, UserTo, Qty, Comment, Type, ChatId from Operations where ID = {id}")
-        res = db.cursor.fetchall()[0]
+        res = db.getOperationsBuf(id)
         if res[2] == '[]':
             userTo = []
         else:
@@ -140,8 +139,7 @@ def getOperations(id: int) -> Operations:
 
 def getOperation(id: int) -> Operation:
     if id != 0:
-        db.cursor.execute(f"select ID, UFrom, UTo, Qty, Comment, ChatId from Operation where ID = {id}")
-        res = db.cursor.fetchone()
+        res = db.getOperationsForChat(id)
         return Operation(id=res[0], userFrom= res[1], userTo = res[2]
                     , qty=res[3], comment=res[4], chatId = res[5])
     return None
@@ -149,33 +147,13 @@ def getOperation(id: int) -> Operation:
 
 def getOperationsIdList(chat: Chat, user_id: int = 0) -> List[int]:
     res = []
-    if user_id != 0:
-        db.cursor.execute(f'select ID as ID' 
-                          f'  from Operation'
-                          f' where UFrom = {user_id}'
-                          f'    or UTo = {user_id}'
-                          f'   and ChatID = {chat.id}'
-                          f' order by ID')
-    else:
-        db.cursor.execute(f'select ID as ID'
-                          f'  from Operation'
-                          f' where ChatID = {chat.id}'
-                          f' order by ID')
-    for id in db.cursor.fetchall():
+    id_list = db.getOperationsIdList(chat.id, user_id)
+    for id in id_list:
         res.append(id[0])
-
     return res
 
 def getOperationText(operation_id: int) -> Dict:
-    db.cursor.execute(f"select u1.Brief, u2.Brief, o.Qty, o.Comment"
-                      f"  from Operation o"
-                      f"  join Users u1"
-                      f"    on u1.ID = o.UFrom"
-                      f"  join Users u2"
-                      f"    on u2.ID = o.UTo "
-                      f"where o.ID = {operation_id}")
-    res = db.cursor.fetchone()
-    dt = {'UserFrom': res[0], 'UserTo': res[1], 'Qty': float(res[2]), 'Comment': res[3]}
+    dt = db.getOperationText(id)
     return dt
 
 
