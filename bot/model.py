@@ -147,7 +147,7 @@ def getOperation(id: int) -> Operation:
 
 def getOperationsIdList(chat: Chat, user_id: int = 0) -> List[int]:
     res = []
-    id_list = db.getOperationsIdList(chat.id, user_id)
+    id_list = db.getOperationsIdList(chat_id = chat.id, user_id = user_id)
     for id in id_list:
         res.append(id[0])
     return res

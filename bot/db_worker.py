@@ -147,8 +147,8 @@ def getOperationsIdList(chat_id: int, user_id: int = 0) -> List[Dict]:
     if user_id != 0:
         cursor.execute(f'select ID as ID' 
                        f'  from Operation'
-                       f' where UFrom = {user_id}'
-                       f'    or UTo = {user_id}'
+                       f' where (UFrom = {user_id}'
+                       f'    or UTo = {user_id})'
                        f'   and ChatID = {chat_id}'
                        f' order by ID')
     else:
