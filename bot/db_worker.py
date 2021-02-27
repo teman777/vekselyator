@@ -6,7 +6,7 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 
 
 def connect():
-    conn = connector.connect(host='localhost'
+    conn = connector.connect(host='bot-sql-server'
                             ,database='veksel'
                             ,user='root'
                             ,password=DB_PASSWORD
