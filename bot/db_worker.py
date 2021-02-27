@@ -4,7 +4,6 @@ from typing import Tuple, Dict, List
 
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 
-DB_PASSWORD = 'vekselbotpassword'
 
 def connect():
     conn = connector.connect(host='localhost'
