@@ -121,6 +121,7 @@ class Chat:
 
 
 def getChatById(id: int) -> Chat:
+    print(id)
     chat = Chat(id)
     chat.load()
     return chat
