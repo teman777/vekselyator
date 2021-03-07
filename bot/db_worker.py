@@ -74,6 +74,7 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
 def isExists(table: str, id: int) -> bool:
     conn = connect()
     cursor = conn.cursor()
+    print(f"select 1 from {table} where ID = {id}")
     cursor.execute(f"select 1 from {table} where ID = {id}")
     if cursor.fetchall():
         res = True

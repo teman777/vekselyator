@@ -20,6 +20,8 @@ async def start(message: types.Message):
     else:
         brief = message.from_user.username
     user = User(id=message.from_user.id, brief=brief)
+    print(chat)
+    print(user)
     chat.addUser(user)
     chat.save()
     await message.reply(text="Зарегистрировал тебя в этом чате.\nПоловина дает вексели, половина гасит. ☝"
