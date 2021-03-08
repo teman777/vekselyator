@@ -2,8 +2,10 @@ version: "3.3"
 services:
         bot-sql-server:
                 build: ./bot-sql-server
-               
 
+               
+                ports:
+                        - "3306:3306" 
                 volumes:
                         - ./bot-sql-server/data_volume:/var/lib/mysql
         tg-bot:

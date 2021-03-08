@@ -1,27 +1,27 @@
 create DATABASE if not exists veksel CHARACTER SET utf8 COLLATE utf8_general_ci;
 use veksel;
 create table if not exists Users            
-            (ID int  unique primary key 
+            (ID NUMERIC(30, 0)  unique primary key 
             ,Brief varchar(50)
             );
             
 
 create table if not exists Chats
-            (ID int unique primary key);
+            (ID NUMERIC(30, 0) unique primary key);
 
 create table if not exists UserChatRelation
-            (ID int primary key auto_increment
-            ,ChatID int 
-            ,UserID int
+            (ID int primary key AUTO_INCREMENT
+            ,ChatID NUMERIC(30, 0) 
+            ,UserID NUMERIC(30, 0)
             ,FOREIGN KEY (ChatID) references Chats(ID)
             ,FOREIGN KEY (UserID) references Users(ID));
             
 create table if not exists Operation
-            (ID     int primary key auto_increment
-            ,UFrom  int 
-            ,UTo    int
+            (ID     int primary key AUTO_INCREMENT
+            ,UFrom  NUMERIC(30, 0) 
+            ,UTo    NUMERIC(30, 0)
             ,Qty    float
-            ,ChatID int
+            ,ChatID NUMERIC(30, 0)
             ,Date   datetime
             ,Comment varchar(255)
             ,FOREIGN KEY (UFrom)  references  Users(ID)
@@ -30,11 +30,11 @@ create table if not exists Operation
             );
 
 create table if not exists Operations
-            (ID     int primary key auto_increment
-            ,UserFrom  int 
+            (ID     int primary key AUTO_INCREMENT
+            ,UserFrom  NUMERIC(30, 0) 
             ,UserTo    varchar(255)
             ,Qty    float
-            ,ChatID int
+            ,ChatID NUMERIC(30, 0)
             ,Comment varchar(255)
             ,Type int
             ,FOREIGN KEY (UserFrom)  references  Users(ID)            
