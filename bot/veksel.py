@@ -128,7 +128,7 @@ async def finish(message: types.Message):
     
     parsable_text = message.text
     qtytext = re.findall(r'\d+\.?\d*', parsable_text)[0]
-    qty = float(qtytext)
+    qty = round(float(qtytext), 2)
     comment = parsable_text[re.match(r'\d+\.?\d*', parsable_text).end() + 1:]
     oper.qty = qty
     oper.comment = comment
