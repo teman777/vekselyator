@@ -20,7 +20,7 @@ create table if not exists Operation
             (ID     int primary key AUTO_INCREMENT
             ,UFrom  NUMERIC(30, 0) 
             ,UTo    NUMERIC(30, 0)
-            ,Qty    float
+            ,Qty    NUMERIC(20, 2)
             ,ChatID NUMERIC(30, 0)
             ,Date   datetime
             ,Comment varchar(255)
@@ -33,7 +33,7 @@ create table if not exists Operations
             (ID     int primary key AUTO_INCREMENT
             ,UserFrom  NUMERIC(30, 0) 
             ,UserTo    varchar(255)
-            ,Qty    float
+            ,Qty    NUMERIC(20, 2)
             ,ChatID NUMERIC(30, 0)
             ,Comment varchar(255)
             ,Type int
