@@ -252,6 +252,7 @@ async def superSaldo(message: types.Message):
     for op in newOperations:
         op.save()
     await message.reply('Суперсальдо!')
+    await saldo(message)
 
 
 # Пасхалочка
