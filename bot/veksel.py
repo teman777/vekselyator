@@ -184,11 +184,11 @@ async def listCommand(message: types.Message):
 
     else:
         oper_id = 0
-        if message.text == '/all':
+        if message.text.startswith('/all'):
             text = 'В этом чате нет открытых векселей.'
         else:
             text = 'У тебя нет открытых векселей.'
-    tp = 0 if message.text == '/all' else 1
+    tp = 0 if message.text.startswith('/all') else 1
     buttons = buildButtonsList(oper_id, message.from_user.id, operations, tp)
     await message.reply(text=text, reply_markup=buttons)
 
@@ -222,7 +222,7 @@ async def deleteOper(callback_query: types.CallbackQuery):
         return
     dt = parseCallback(callback_query.data)
     operID = dt['operID']
-    chat = model.getChatById(callback_query.from_user.id)
+    chat = model.getChatById(callback_query.message.chat.id)
     tp = dt['command']
     user_id = 0 if tp == 0 else callback_query.from_user.id
     l = model.getOperationsIdList(chat, user_id)
