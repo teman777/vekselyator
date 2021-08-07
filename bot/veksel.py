@@ -8,7 +8,6 @@ import model
 from model import User, Chat, Operations
 
 api = os.getenv('TG_API')
-api = '1902657895:AAFxZ1TKDBCHzR4o8D_rYq5GavnY7KeX9OM'
 bot = Bot(token=api)
 dp = Dispatcher(bot)
 

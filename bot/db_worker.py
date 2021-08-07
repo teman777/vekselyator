@@ -5,8 +5,8 @@ import mysql.connector as connector
 
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 HOST = 'bot-sql-server'
-HOST = 'localhost'
-DB_PASSWORD = 'vekselbotpassword'
+#HOST = 'localhost'
+#DB_PASSWORD = 'vekselbotpassword'
 
 
 def connect():
